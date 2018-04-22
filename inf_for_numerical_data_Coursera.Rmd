@@ -231,8 +231,9 @@ inference(y = weeks, data = nc, statistic = "mean", type = "ci", conf_level = 0.
 ```{r weeks-ci-90}
 # type your code for the Exercise here, and Knit
 
-
 inference(y = weeks, data = nc, statistic = "mean", type = "ci", conf_level = 0.90, method = "theoretical")
+
+# We would expect the 90% confidence level interval to be narrower than the 99% confidence level interval because this lower level of confidence doesn't require as wide a net to "catch" the true population parameter. We can be more specific, but will miss a higher percent of the time.
 
 ```
 
@@ -248,8 +249,30 @@ inference(y = gained, x = mature, data = nc, statistic = "mean", type = "ht", nu
 
 7. Now, a non-inference task: Determine the age cutoff for younger and mature 
 mothers. Use a method of your choice, and explain how your method works.
-```{r cutoff-mature}
+```{r cutoff-mature-boxplot}
 # type your code for Question 7 here, and Knit
+
+# To visualize this, we can use a basic side-by-side boxplot which, presumably, will show the point at which "younger mom" leaves off and "mature mom" picks up.
+
+ggplot(nc, aes(x = mature, y = fage)) + geom_boxplot()
+
+```
+
+``` {r cutoff-mature-min-mature-max-younger}
+
+# To our surprise, we see that, while the IQR concentration ends at about 37 for younger moms, and begins at 35 for mature moms, the two categories actually have signficant overlap. Indeed, the oldest "younger mom" is 48 and the youngest "mature mom" is 26 if we summarise each subset for their respective max/min:
+
+nc %>% filter(mature == "younger mom", !is.na(fage)) %>% summarise(younger_cutoff = max(fage))
+nc %>% filter(mature == "mature mom", !is.na(fage)) %>% summarise(mature_cutoff = min(fage))
+
+```
+
+``` {r cutoff-mature-detail}
+
+# And a histogram of `fage` color filled by `mature` will show just how much overlap there is, followed by a crosstab with the full frequency count of the mother's birth age by `mature` status.
+
+ggplot(nc, aes(x = fage, fill = mature)) + geom_histogram()
+xtabs(~ fage + mature, nc)
 
 ```
 
@@ -265,11 +288,58 @@ and analyzing the data to answer this question is basically what you'll need to 
 your project as well.)
 </div>
 
-```{r pick-your-own}
-# type your code for the Exercise here, and Knit
+I'll explore the potential correlation between healthcare and healthy babies, using the numerical variable of pre-birth `visits` to a hospital and the categorical variable of `lowbirthweight`, with "low" and "not low" as its possible values.
+
+The null hypothesis would be that we will find no difference between the mean number of visits for low vs. not low birthweight babies; and the alternative hypothesis would be that we will find a significant difference.
+
+$$ H_0: \mu_n - \mu_l = 0 $$
+$$ H_A: \mu_n - \mu_l \neq 0 $$
+Potential issues:
+
+First: note that we'll need to use a two-sided test: while I'm assuming more hospital visits correlates with non-low birthweights, it's possible that a difficult pregancy ending in a low birthweight might also prompt more hospital visits.
+
+Second: The documentation of the `nc` dataset doesn't specify how `lowbirthweight` is assigned, though the following side-by-side boxplot suggests that, unlike what we saw with the younger/mature mother's age `mature` variable, there is a pretty defined cutoff for low birthweight at 5.5 lbs.
+
+
+```{r distribution-of-weights-by-lowbirthweight}
+
+ggplot(nc, aes(x = lowbirthweight, y = weight)) + geom_boxplot()
 
 ```
 
+A similar side-by-side boxplot for `lowbirthweight` by `visits` shows that the distribution in both categories is close to normal, with no extreme skew, roughly similar variability between the two groups, and a definite (though not yet obviously signficant) difference in the median number of visits, with low birthweight showing 2 less visits.
+
+``` {r distribution-of-visits-by-lowbirthweight}
+
+ggplot(nc, aes(x = lowbirthweight, y = visits)) + geom_boxplot()
+
+# ...and what about the difference in means?
+
+nc %>% 
+  group_by(lowbirthweight) %>% 
+  filter(!is.na(visits)) %>%
+  summarise(mean_visits = mean(visits))
+
+
+```
+
+So let's run a two-sided t-test on the difference in mean # of visits between the low and not low birthweight groups using the statsr package's inference() function.
+
+``` {r t-test-hypothesis-test}
+
+inference(y = visits, x = lowbirthweight, data = nc, statistic = "mean", type = "ht", null = 0, alternative = "twosided", method = "theoretical")
+
+```
+
+With a p-value of 0.003, the difference we've observed signficant even at a 99% confidence level, for which we can construct a confidence interval.
+
+``` {r t-test-confidence-interval}
+
+inference(y = visits, x = lowbirthweight, data = nc, statistic = "mean", type = "ci", conf_level = 0.99, method = "theoretical")
+
+```
+
+We can say with 99% confidence that the population mean difference between the number of pre-birth hospital visits by babies classed as having low birthweight and babies not having low birthweight is between -2.7 and -0.2.
 
 <div id="license">
 This is a product of OpenIntro that is released under a [Creative Commons 
