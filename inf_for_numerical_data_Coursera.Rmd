@@ -70,6 +70,7 @@ This can be done using the `str` command:
 
 ```{r str}
 str(nc)
+
 ```
 
 As you review the variable summaries, consider which variables are categorical and which 
@@ -112,6 +113,7 @@ false about the relationship between habit and weight?
 ```{r habit-weight-box}
 # type your code for the Question 3 here, and Knit
 
+ggplot(data = nc, aes(x = habit, y = weight)) + geom_boxplot()
 ```
 
 The box plots show how the medians of the two distributions compare, but we can
@@ -152,8 +154,9 @@ hypothesis tests and constructing confidence intervals.
 Then, run the following:
 
 ```{r inf-weight-habit-ht, tidy=FALSE}
-inference(y = weight, x = habit, data = nc, statistic = "mean", type = "ht", null = 0, 
-          alternative = "twosided", method = "theoretical")
+
+inference(y = weight, x = habit, data = nc, statistic = "mean", type = "ht", null = 0, alternative = "twosided", method = "theoretical")
+
 ```
 
 Let's pause for a moment to go through the arguments of this custom function. 
@@ -192,14 +195,16 @@ between 0 and 1. Also note that when doing a confidence interval arguments like
 ```{r habit-weight-ci}
 # type your code for the Question 5 here, and Knit
 
+inference(y = weight, x = habit, data = nc, statistic = "mean", type = "ci", method = "theoretical")
+
 ```
 
 By default the function reports an interval for ($\mu_{nonsmoker} - \mu_{smoker}$)
 . We can easily change this order by using the `order` argument:
 
 ```{r inf-weight-habit-ci, tidy=FALSE}
-inference(y = weight, x = habit, data = nc, statistic = "mean", type = "ci", 
-          method = "theoretical", order = c("smoker","nonsmoker"))
+
+inference(y = weight, x = habit, data = nc, statistic = "mean", type = "ci", method = "theoretical", order = c("smoker","nonsmoker"))
 ```
 
 6. Calculate a 99% confidence interval for the average length of pregnancies 
@@ -216,6 +221,8 @@ interval?
 ```{r weeks-ci-99}
 # type your code for Question 6 here, and Knit
 
+inference(y = weeks, data = nc, statistic = "mean", type = "ci", conf_level = 0.99, method = "theoretical")
+
 ```
 
 <div id="exercise">
@@ -224,6 +231,9 @@ interval?
 ```{r weeks-ci-90}
 # type your code for the Exercise here, and Knit
 
+
+inference(y = weeks, data = nc, statistic = "mean", type = "ci", conf_level = 0.90, method = "theoretical")
+
 ```
 
 <div id="exercise">
@@ -231,6 +241,8 @@ interval?
 </div>
 ```{r gained-mature-ht}
 # type your code for the Exercise here, and Knit
+
+inference(y = gained, x = mature, data = nc, statistic = "mean", type = "ht", null = 0, alternative = "twosided", method = "theoretical")
 
 ```
 
